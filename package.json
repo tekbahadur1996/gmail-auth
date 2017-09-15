@@ -1,0 +1,21 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "ejs": "^2.5.7",
+    "express": "^4.15.4",
+    "hbs": "^4.0.1",
+    "mongoose": "^4.11.11",
+    "passport": "^0.4.0",
+    "passport-google-oauth": "^1.0.0",
+    "passport-local": "^1.0.0"
+  }
+}
