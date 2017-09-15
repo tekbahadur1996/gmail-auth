@@ -3,6 +3,7 @@ var app      = express();
 var port     = process.env.PORT || 8080;
 var passport = require('passport');
 const hbs = require('hbs');
+var session      = require('express-session');
 var LocalStrategy    = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
 var User       = require('./app/models/user');
@@ -14,6 +15,8 @@ app.set('view engine', 'ejs'); // set up ejs for templating
 app.set('view engine', 'hbs');
 // required for passport
 app.use(passport.initialize());
+app.use(session({ secret: 'ilovescotchscotchyscotchscotch',saveUninitialized: true,resave: true })); // session secret
+app.use(passport.session());
 
 // route for home page
 app.use('/', express.static('./'));
@@ -21,8 +24,11 @@ app.use('/', express.static('./'));
 function isLoggedIn(req, res, next) {
 
     // if user is authenticated in the session, carry on
-    if (req.isAuthenticated())
-        return next();
+    if (req.isAuthenticated()){
+      console.log("teki");
+      return next();
+    }
+console.log(req);
 
     // if they aren't redirect them to the home page
     res.redirect('/');
@@ -30,11 +36,13 @@ function isLoggedIn(req, res, next) {
 
 // used to serialize the user for the session
 passport.serializeUser(function(user, done) {
-    done(null, user.id);
+  console.log('serialize');
+    done(null, user);
 });
 
 // used to deserialize the user
 passport.deserializeUser(function(id, done) {
+  console.log('deserialize');
     User.findById(id, function(err, user) {
         done(err, user);
     });
@@ -54,9 +62,11 @@ function(token, refreshToken, profile, done) {
 
     process.nextTick(function() {
       console.log("hello");
-      console.log(profile.displayName);
-      return done(null, profile); //akash
-
+      var user = {
+        name: profile.displayName,
+        email: profile.emails[0]
+      }
+      return done(null, user);
 });
 
 }));
@@ -66,9 +76,10 @@ function(token, refreshToken, profile, done) {
 // route for processing the signup form
 
 // route for showing the profile page
-app.get('/profile', isLoggedIn, function(req, res) {
+app.get('/profile',  function(req, res) {
+  console.log('in GET /profile');
     res.render('profile.hbs', {
-      name: profile.displayName
+      name: 'teki'
     });
 });
 
@@ -79,7 +90,7 @@ app.get('/logout', function(req, res) {
 });
 
 app.get('/auth/google',
-passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
+  passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login', 'profile', 'email'] }));
 
 // the callback after google has authenticated the user
 app.get('/auth/google/callback',
