@@ -66,6 +66,12 @@ function(token, refreshToken, profile, done) {
         name: profile.displayName,
         email: profile.emails[0]
       }
+      app.get('/profile',  function(req, res) {
+        console.log('in GET /profile');
+          res.render('profile.hbs', {
+            name: user.name
+          });
+      });
       return done(null, user);
 });
 
@@ -76,12 +82,7 @@ function(token, refreshToken, profile, done) {
 // route for processing the signup form
 
 // route for showing the profile page
-app.get('/profile',  function(req, res) {
-  console.log('in GET /profile');
-    res.render('profile.hbs', {
-      name: 'teki'
-    });
-});
+
 
 // route for logging out
 app.get('/logout', function(req, res) {
