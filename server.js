@@ -1,37 +1,34 @@
 var express  = require('express');
 var app      = express();
+var profile = express();
 var port     = process.env.PORT || 8080;
 var passport = require('passport');
 const hbs = require('hbs');
+var bodyParser  	= 	require('body-parser');
 var session      = require('express-session');
 var LocalStrategy    = require('passport-local').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
-var User       = require('./app/models/user');
-// require('./config/passport')(passport); // pass passport for configuration
+var {Post} = require('./app/models/user');
+var {mongoose} = require('./app/dbhandler');
 
 // set up our express application
 
-app.set('view engine', 'ejs'); // set up ejs for templating
 app.set('view engine', 'hbs');
 // required for passport
 app.use(passport.initialize());
-app.use(session({ secret: 'ilovescotchscotchyscotchscotch',saveUninitialized: true,resave: true })); // session secret
+app.use(session({ secret: 'secret',saveUninitialized: true,resave: true })); // session secret
 app.use(passport.session());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 // route for home page
 app.use('/', express.static('./'));
+app.use('/profile', profile);
 
-function isLoggedIn(req, res, next) {
-
-    // if user is authenticated in the session, carry on
-    if (req.isAuthenticated()){
-      console.log("teki");
-      return next();
-    }
-console.log(req);
-
-    // if they aren't redirect them to the home page
-    res.redirect('/');
+function getPost() {
+  return Post.find().then((docs) => {
+    resolve(docs);
+  });
 }
 
 // used to serialize the user for the session
@@ -57,21 +54,12 @@ passport.use(new GoogleStrategy({
 },
 function(token, refreshToken, profile, done) {
 
-    // make the code asynchronous
-    // User.findOne won't fire until we have all our data back from Google
-
     process.nextTick(function() {
       console.log("hello");
       var user = {
         name: profile.displayName,
         email: profile.emails[0]
       }
-      app.get('/profile',  function(req, res) {
-        console.log('in GET /profile');
-          res.render('profile.hbs', {
-            name: user.name
-          });
-      });
       return done(null, user);
 });
 
@@ -82,7 +70,24 @@ function(token, refreshToken, profile, done) {
 // route for processing the signup form
 
 // route for showing the profile page
-
+app.get('/profile',  function(req, res) {
+  console.log('in GET /profile');
+  sessionTemp = req.sessionStore.sessions;
+  sessionTemp1 = sessionTemp[req.sessionID];
+  var temp = JSON.parse(sessionTemp1).passport.user;
+    var tempUser = {
+      name: temp.name,
+      email: temp.email.value
+    }
+    Post.find().then((docs) => {
+      return docs;
+    }).then( (docs) => {
+        res.render('profile.hbs', {
+          name: tempUser.name,
+          data: docs
+        });
+    });
+});
 
 // route for logging out
 app.get('/logout', function(req, res) {
@@ -95,10 +100,35 @@ app.get('/auth/google',
 
 // the callback after google has authenticated the user
 app.get('/auth/google/callback',
-        passport.authenticate('google', {
-                successRedirect : '/profile',
-                failureRedirect : '/'
-        }));
+  passport.authenticate('google', {
+    successRedirect : '/profile',
+    failureRedirect : '/'
+  }));
+
+app.post('/postData', (req, res) => {
+  console.log(req.body);
+  var user = new Post({
+    text: req.body.postData,
+    name: req.body.name
+  });
+  user.save().then((doc) => {
+    console.log(doc);
+  });
+  res.send();
+});
+app.get('/comment', (req, res) => {
+  console.log('in comment');
+  console.log(req.query);
+    Post.findById("59bcf71a124a863b54f1ca87").then((data) => {
+      return data;
+    }).then((data) => {
+      console.log('in render');
+      res.render('comment.hbs', {
+        name: data.name,
+        text: data.text
+      });
+    });
+});
 
 app.listen(port, () => {
   console.log('The magic happens on port ' + port);

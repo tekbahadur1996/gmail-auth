@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Profile</title>
+    <title>Comments</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -11,33 +11,15 @@
         height: 900px;
         background-color:#F0FFFF;
       }
-      .postlist {
+      .postshow{
         background-color: #E6E6FA;
         margin-top: 10px;
-        cursor: pointer;
         border: solid black 1px;
         border-radius: 5px;
         margin-right: 20px;
         overflow: visible;
       }
     </style>
-    <script>
-      $(document).ready(function() {
-        $('#postdata').click(function () {
-          var postData = $('#sendtext').val();
-          var name = $('#userName').html();
-          name = name.replace('Hello ', "");
-          $.post("/postData", {postData, name}, function (data) {
-            window.location.href="/profile";
-          })
-        });
-      });
-      function goToPost(id) {
-        $.get('/comment', {id}, function (data) {
-          //window.location.href="/comment";
-        });
-      }
-    </script>
   </head>
   <body>
     <div class="col-md-2"></div>
@@ -49,24 +31,19 @@
         <a class="navbar-brand nav navbar-nav navbar-right" href="/logout">Log out</a>
       </nav>
       <hr>
+      <h2>Post</h2><br>
+      <div class="postshow">
+        <div style="margin: 10px;">
+          <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
+        </div>
+      </div>
       <form class="" action="index.html" method="post">
         <div class="form-group">
           <textarea class="form-control" rows="3" placeholder="Type your Post here..." id="sendtext"></textarea>
           <br>
-          <button type="button" class="btn btn-primary" style="width:100px;" id="postdata">Post</button>
+          <button type="button" class="btn btn-primary" style="width:100px;" id="postdata">Comment</button>
         </div>
       </form>
-      <div class="" style="background-color:white; height:600px; border-radius:10px; overflow:scroll;">
-        <ul class="people_list">
-          {{#each data}}
-            <div class="postlist" id="{{this.id}}" onclick="goToPost(this.id)">
-              <div style="margin: 10px;">
-                <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
-              </div>
-            </div><br>
-          {{/each}}
-        </ul>
-      </div>
     </div>
     <div class="col-md-2"></div>
   </body>
