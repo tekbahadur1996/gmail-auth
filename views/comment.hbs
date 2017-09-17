@@ -13,13 +13,37 @@
       }
       .postshow{
         background-color: #E6E6FA;
-        margin-top: 10px;
         border: solid black 1px;
         border-radius: 5px;
-        margin-right: 20px;
+        margin-right: 0px;
         overflow: visible;
       }
+      .allComments{
+        height: 600px;
+        background-color: white;
+        border: solid black 1px;
+        margin-top: 5px;
+        border-radius: 5px;
+      }
     </style>
+    <script>
+    $(document).ready(function() {
+      $('#postComment').click(function () {
+        var postComment = $('#sendComment').val();
+        if(postComment.trim() != '') {
+          var name = $('#userName').html();
+          name = name.replace('Hello ', "");
+          var pathName = window.location.pathname;
+          var temp = pathName.split('/');
+          temp = temp[temp.length - 1];
+          var id = temp;
+          $.post("/profile/postComment", {id, postComment, name}, function (data) {
+            window.location.href = pathName;
+          });
+        }
+      });
+    });
+    </script>
   </head>
   <body>
     <div class="col-md-2"></div>
@@ -27,24 +51,36 @@
       <h1 style="text-align:center;">Blog App</h1>
       <hr>
       <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand" href="#" id="userName">Hello {{name}}</a>
+        <a class="navbar-brand" href="/profile" id="userName">Hello {{userName}}</a>
         <a class="navbar-brand nav navbar-nav navbar-right" href="/logout">Log out</a>
       </nav>
       <hr>
-      <h2>Post</h2><br>
-      <div class="postshow">
-        <div style="margin: 10px;">
-          <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
+        <div class="postshow">
+          <div style="margin: 10px;">
+            <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
+          </div>
         </div>
-      </div>
-      <form class="" action="index.html" method="post">
+      <form class="" action="" method="post">
         <div class="form-group">
-          <textarea class="form-control" rows="3" placeholder="Type your Post here..." id="sendtext"></textarea>
-          <br>
-          <button type="button" class="btn btn-primary" style="width:100px;" id="postdata">Comment</button>
+          <div class="col-md-10">
+            <textarea class="form-control" rows="2" placeholder="Type your Comment here..." id="sendComment" autofocus></textarea>
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-primary" style="width:165px;" id="postComment">Comment</button>
+          </div>
         </div>
-      </form>
-    </div>
+      </form><br><br>
+      <h2>Comments:</h2>
+        <div class="allComments" style="background-color:white; height:500px; border-radius:10px; overflow:scroll;">
+          {{#each data}}
+            <div class="">
+              <div style="margin-left: 10px; margin-top:5px;">
+                <span style="font-size:20px;">{{this.commentName}}</span> : {{this.commentData}}
+              </div>
+            </div><br>
+          {{/each}}
+        </div>
+
     <div class="col-md-2"></div>
   </body>
 </html>

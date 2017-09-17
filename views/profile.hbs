@@ -25,17 +25,17 @@
       $(document).ready(function() {
         $('#postdata').click(function () {
           var postData = $('#sendtext').val();
-          var name = $('#userName').html();
-          name = name.replace('Hello ', "");
-          $.post("/postData", {postData, name}, function (data) {
-            window.location.href="/profile";
-          })
+          if(postData.trim() != '') {
+            var name = $('#userName').html();
+            name = name.replace('Hello ', "");
+            $.post("/postData", {postData, name}, function (data) {
+              window.location.href="/profile";
+            });
+          }
         });
       });
       function goToPost(id) {
-        $.get('/comment', {id}, function (data) {
-          window.location.href="/comment";
-        });
+        window.location.href = "/profile/"+id+"";
       }
     </script>
   </head>
@@ -51,21 +51,19 @@
       <hr>
       <form class="" action="index.html" method="post">
         <div class="form-group">
-          <textarea class="form-control" rows="3" placeholder="Type your Post here..." id="sendtext"></textarea>
+          <textarea class="form-control" rows="3" placeholder="Type your Post here..." id="sendtext" autofocus></textarea>
           <br>
           <button type="button" class="btn btn-primary" style="width:100px;" id="postdata">Post</button>
         </div>
       </form>
       <div class="" style="background-color:white; height:600px; border-radius:10px; overflow:scroll;">
-        <ul class="people_list">
-          {{#each data}}
-            <div class="postlist" id="{{this.id}}" onclick="goToPost(this.id)">
-              <div style="margin: 10px;">
-                <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
-              </div>
-            </div><br>
-          {{/each}}
-        </ul>
+        {{#each data}}
+          <div class="postlist" id="{{this.id}}" onclick="goToPost(this.id)">
+            <div style="margin: 10px;">
+              <span style="font-size:20px;">{{this.name}}</span> : {{this.text}}
+            </div>
+          </div><br>
+        {{/each}}
       </div>
     </div>
     <div class="col-md-2"></div>

@@ -7,7 +7,15 @@ var Post = mongoose.model('Post', {
   },
   name: {
     type: String,
-  }
+  },
+  comment : [{
+    commentName: {
+      type: String
+    },
+    commentData: {
+      type: String
+    }
+  }]
 });
 
 module.exports = {Post};

@@ -1,17 +1,18 @@
 var express  = require('express');
-var app      = express();
-var profile = express();
-var port     = process.env.PORT || 8080;
 var passport = require('passport');
 const hbs = require('hbs');
 var bodyParser  	= 	require('body-parser');
 var session      = require('express-session');
-var LocalStrategy    = require('passport-local').Strategy;
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
 var {Post} = require('./app/models/user');
 var {mongoose} = require('./app/dbhandler');
 
 // set up our express application
+
+var app      = express();
+var profile = express();
+var port     = process.env.PORT || 8080;
 
 app.set('view engine', 'hbs');
 // required for passport
@@ -55,7 +56,6 @@ passport.use(new GoogleStrategy({
 function(token, refreshToken, profile, done) {
 
     process.nextTick(function() {
-      console.log("hello");
       var user = {
         name: profile.displayName,
         email: profile.emails[0]
@@ -70,24 +70,6 @@ function(token, refreshToken, profile, done) {
 // route for processing the signup form
 
 // route for showing the profile page
-app.get('/profile',  function(req, res) {
-  console.log('in GET /profile');
-  sessionTemp = req.sessionStore.sessions;
-  sessionTemp1 = sessionTemp[req.sessionID];
-  var temp = JSON.parse(sessionTemp1).passport.user;
-    var tempUser = {
-      name: temp.name,
-      email: temp.email.value
-    }
-    Post.find().then((docs) => {
-      return docs;
-    }).then( (docs) => {
-        res.render('profile.hbs', {
-          name: tempUser.name,
-          data: docs
-        });
-    });
-});
 
 // route for logging out
 app.get('/logout', function(req, res) {
@@ -105,31 +87,83 @@ app.get('/auth/google/callback',
     failureRedirect : '/'
   }));
 
+// GET profile route
+app.get('/profile',  function(req, res) {
+  sessionTemp = req.sessionStore.sessions;
+  sessionTemp1 = sessionTemp[req.sessionID];
+  var temp = JSON.parse(sessionTemp1).passport.user;
+    var tempUser = {
+      name: temp.name,
+      email: temp.email.value
+    }
+    Post.find().then((docs) => {
+      return docs;
+    }).then( (docs) => {
+        res.render('profile.hbs', {
+          name: tempUser.name,
+          data: docs
+        });
+    });
+  });
+
+//POST the post
 app.post('/postData', (req, res) => {
-  console.log(req.body);
   var user = new Post({
     text: req.body.postData,
     name: req.body.name
   });
   user.save().then((doc) => {
-    console.log(doc);
   });
   res.send();
 });
-app.get('/comment', (req, res) => {
-  console.log('in comment');
-  console.log(req.query);
-    Post.findById("59bcf71a124a863b54f1ca87").then((data) => {
-      return data;
-    }).then((data) => {
-      console.log('in render');
+
+//GET the post
+profile.get('/:id', (req, res) => {
+  sessionTemp = req.sessionStore.sessions;
+  sessionTemp1 = sessionTemp[req.sessionID];
+  var temp = JSON.parse(sessionTemp1).passport.user;
+    var tempUser = {
+      name: temp.name,
+      email: temp.email.value
+    }
+  Post.findById(req.params.id).then((data) => {
+    return data;
+  }).then((data) => {
+    if(data.comment == null)
+    {
       res.render('comment.hbs', {
+        userName: tempUser.name,
         name: data.name,
-        text: data.text
+        text: data.text,
       });
+    }
+    var temp = {
+      commentName: data.comment.commentName,
+      commentData: data.comment.commentData
+    }
+    res.render('comment.hbs', {
+      userName: tempUser.name,
+      name: data.name,
+      text: data.text,
+      data: data.comment
     });
+
+  });
 });
 
+//comment on the post
+profile.post('/postComment', (req, res) => {
+  var temp = {
+    commentName: req.body.name,
+    commentData: req.body.postComment
+  }
+  Post.findById(req.body.id).then((doc) => {
+    doc.comment.push(temp);
+    doc.save().then((data) => {
+      res.send();
+    });
+  });
+});
 app.listen(port, () => {
   console.log('The magic happens on port ' + port);
 });
